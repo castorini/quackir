@@ -65,6 +65,7 @@ python hybrid_searcher.py
 ## Evaluation
 To run evaluation:
 ```
+# In project root
 python -m pyserini.eval.trec_eval   -c -m ndcg_cut.10 collections/nfcorpus/qrels/test.qrels   runs/nfcorpus/run.bm25.txt 
 
 python -m pyserini.eval.trec_eval   -c -m ndcg_cut.10 collections/nfcorpus/qrels/test.qrels   runs/nfcorpus/run.bge-base-en-v1.5.txt
@@ -81,4 +82,4 @@ which should yield:
 | BGE-Base (en-v1.5)                                                                                                   | 0.3808  |
 | RRF (k=60)                                                                                     | 0.3594    |
 | CC (alpha=0.8)                                                                                                   | 0.3587  |
-> Note: The BGE-Base value matches [that in Pyserini](https://github.com/castorini/pyserini/blob/.master/docs/experiments-nfcorpus.md). However, the BM25 value is slightly below [that in Pyserini](https://github.com/castorini/pyserini/blob/master/docs/conceptual-framework2.md). This could be due to how DuckDB uses different stemmers, stopwords, pre-processing (removal of accents, punctuations, numbers) than Pyserini/Anserini. For more information, see [this blog post by DuckDB](https://duckdb.org/2021/01/25/full-text-search.html).
+> Note: The BGE-Base value matches [that in Pyserini](https://github.com/castorini/pyserini/blob/master/docs/experiments-nfcorpus.md). However, the BM25 value is slightly below [that in Pyserini](https://github.com/castorini/pyserini/blob/master/docs/conceptual-framework2.md). This could be due to how DuckDB uses different stemmers, stopwords, pre-processing (removal of accents, punctuations, numbers) than Pyserini/Anserini. For more information, see [this blog post by DuckDB](https://duckdb.org/2021/01/25/full-text-search.html).

@@ -119,11 +119,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--corpus-file", type=str)
     parser.add_argument("--query-file", type=str)
-
+    parser.add_argument("--output-file", type=str)
     args = parser.parse_args()
 
     benchmarker = BM25Searcher()
     benchmarker.init_tables(args.corpus_file, args.query_file)
     # results = benchmarker.conn.execute("SELECT * FROM corpus LIMIT 5;").fetchall()
     #
-    benchmarker.search_all_queries("results.txt")
+    benchmarker.search_all_queries(args.output_file)

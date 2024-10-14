@@ -28,16 +28,16 @@ for subdir in "$base_dir"/*; do
         # Run the Python script in the background for each sub-subdirectory
         python scripts/bm25_benchmarking.py \
           --corpus-file "$subsubdir/corpus.jsonl" \
-          --query-file "$subsubdir/queries.jsonl" \
-          --output-file "runs/bm25_beir_${collection_name}_${subcollection_name}.txt" &
+          --query-file "../anserini/tools/topics-and-qrels/topics.beir-v1.0.0-${collection_name}-${subcollection_name}.test.tsv.gz" \
+          --output-file "runs/duckDB_bm25_beir_${collection_name}_${subcollection_name}.txt" >"logs/duckDB_bm25_beir_${collection_name}_${subcollection_name}.txt" &
       fi
     done
   else
     # Run the Python script in the background for other directories
     python scripts/bm25_benchmarking.py \
       --corpus-file "$subdir/corpus.jsonl" \
-      --query-file "$subdir/queries.jsonl" \
-      --output-file "runs/bm25_beir_${collection_name}.txt" &
+      --query-file "../anserini/tools/topics-and-qrels/topics.beir-v1.0.0-$collection_name.test.tsv.gz" \
+      --output-file "runs/duckDB_bm25_beir_${collection_name}.txt" >logs/duckDB_bm25_beir_${collection_name}.txt &
   fi
 done
 
@@ -46,4 +46,3 @@ wait
 
 # Echo message when all jobs are completed
 echo "All directories processed."
-

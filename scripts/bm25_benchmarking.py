@@ -11,19 +11,19 @@ class BM25Searcher:
     def __init__(self) -> None:
         self.conn = duckdb.connect(":memory:")
 
-    def _create_tables(self):
-        self.conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS corpus (
-                id VARCHAR PRIMARY KEY,
-                contents VARCHAR,
-            )
-        """)
-        self.conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS query (
-                id VARCHAR PRIMARY KEY,
-                contents VARCHAR,
-            )
-        """)
+    # def _create_tables(self):
+    #     self.conn.execute(f"""
+    #         CREATE TABLE IF NOT EXISTS corpus (
+    #             id VARCHAR PRIMARY KEY,
+    #             contents VARCHAR,
+    #         )
+    #     """)
+    #     self.conn.execute(f"""
+    #         CREATE TABLE IF NOT EXISTS query (
+    #             id VARCHAR PRIMARY KEY,
+    #             contents VARCHAR,
+    #         )
+    #     """)
 
     def _add_to_index(self, id, text, table_name):
         try:
@@ -33,19 +33,16 @@ class BM25Searcher:
             """,
                 (id, text),
             )
+            print("inserted", id, text, "into", table_name)
         except duckdb.IntegrityError:
             print(f"Skipping duplicate id in {table_name}: {id}")
 
-    def _load_tsv_to_table(self, tsv_file, table_name):
-        with open(tsv_file, "r") as tsvfile:
-            reader = csv.reader(tsvfile, delimiter="\t")
-
-            # Iterate through each row, assuming no header
-            for row in reader:
-                id = row[0]
-                text = row[1]
-                self._add_to_index(id, text, table_name)
-        self.conn.commit()
+    def batch_load_tsv_to_table(self, tsv_file, table_name):
+        print("Loading: ", tsv_file)
+        self.conn.execute(f"""
+                        CREATE TABLE {table_name} AS
+                        SELECT column0 as id, column1 as contents FROM read_csv_auto('{tsv_file}', delim='\t', header=False);
+                    """)
 
     def _load_jsonl_to_table(self, file_path, table_name):
         with open(file_path, "r") as file:
@@ -57,14 +54,20 @@ class BM25Searcher:
                     print(f"Skipping invalid JSON in {file_path}: {line}")
         self.conn.commit()
 
+    def batch_load_jsonl_to_table(self, file_path, table_name):
+        print("Loading: ", file_path)
+        self.conn.execute(f"""
+            CREATE TABLE {table_name} AS SELECT _id AS id, text AS contents FROM read_json('{file_path}', format = 'newline_delimited');
+        """)
+
     def init_tables(self, corpus_file, query_file):
-        self._create_tables()
-        self._load_jsonl_to_table(corpus_file, "corpus")
-        self._load_jsonl_to_table(query_file, "query")
+        self.batch_load_tsv_to_table(query_file, "query")
+        self.batch_load_jsonl_to_table(corpus_file, "corpus")
 
         self.conn.execute("PRAGMA create_fts_index(corpus, id, contents)")
 
         for table in ["corpus", "query"]:
+            # for table in ["query"]:
             result = self.conn.execute(f"SELECT COUNT(*) FROM {table}")
             print(f"Loaded {result.fetchone()[0]} rows in {table}")
 
@@ -93,7 +96,7 @@ class BM25Searcher:
     def search_all_queries(self, output_file, top_n=1000, run_tag=None, **kwargs):
         queries = self.conn.execute("SELECT id, contents FROM query").fetchall()
 
-        run_tag = run_tag or "bm25_run"
+        run_tag = run_tag or "bm25_duckDB"
 
         all_results = []
 
@@ -104,6 +107,7 @@ class BM25Searcher:
 
             for rank, (doc_id, _, score) in enumerate(results, 1):
                 all_results.append((query_id, doc_id, score, rank))
+                print((query_id, doc_id, score, rank))
 
         all_results.sort(key=self._custom_sort_key)
 

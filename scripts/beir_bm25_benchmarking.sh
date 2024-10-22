@@ -3,6 +3,10 @@
 # Base directory
 base_dir="/store/collections/beir-v1.0.0/original"
 
+# Database type (sqlite or duckdb)
+db_type=${1:-"sqlite"}
+echo "Running script for $db_type"
+
 # Iterate over subdirectories in the base directory
 for subdir in "$base_dir"/*; do
   # Skip if it's not a directory or if the name ends with .zip
@@ -29,7 +33,8 @@ for subdir in "$base_dir"/*; do
         python scripts/bm25_benchmarking.py \
           --corpus-file "$subsubdir/corpus.jsonl" \
           --query-file "../anserini/tools/topics-and-qrels/topics.beir-v1.0.0-${collection_name}-${subcollection_name}.test.tsv.gz" \
-          --output-file "runs/duckDB_bm25_beir_${collection_name}_${subcollection_name}.txt" >"logs/duckDB_bm25_beir_${collection_name}_${subcollection_name}.txt" &
+          --output-file "runs/${db_type}_bm25_beir_${collection_name}_${subcollection_name}.txt" \
+          --db-type "$db_type" >"logs/${db_type}_bm25_beir_${collection_name}_${subcollection_name}.txt" &
       fi
     done
   else
@@ -37,7 +42,8 @@ for subdir in "$base_dir"/*; do
     python scripts/bm25_benchmarking.py \
       --corpus-file "$subdir/corpus.jsonl" \
       --query-file "../anserini/tools/topics-and-qrels/topics.beir-v1.0.0-$collection_name.test.tsv.gz" \
-      --output-file "runs/duckDB_bm25_beir_${collection_name}.txt" >logs/duckDB_bm25_beir_${collection_name}.txt &
+      --output-file "runs/${db_type}_bm25_beir_${collection_name}.txt" \
+      --db-type "$db_type" >"logs/${db_type}_bm25_beir_${collection_name}.txt" &
   fi
 done
 

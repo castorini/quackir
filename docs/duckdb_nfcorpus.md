@@ -1,5 +1,5 @@
 # DuckDB Baselines for NFCorpus
-This guide walks through running BM25 and dense retrieval with BGE-Base on NFCorpus in DuckDB with pretokenized corpus and queries. The BM25 code follows this [script](https://github.com/castorini/quackir/blob/vivek.a/duckDB-experimentation/scripts/bm25_benchmarking.py) and the BGE-base code follows this [script](https://github.com/castorini/quackir/blob/main/scripts/hybrid_searcher.py).
+This guide walks through running BM25 with pretokenized corpus and queries and dense retrieval with BGE-Base on NFCorpus in DuckDB. The BM25 code follows this [script](https://github.com/castorini/quackir/blob/vivek.a/duckDB-experimentation/scripts/bm25_benchmarking.py) and the BGE-base code follows this [script](https://github.com/castorini/quackir/blob/main/scripts/hybrid_searcher.py).
 
 ## Data Prep
 To fetch the data:
@@ -141,8 +141,8 @@ def load_jsonl_to_table(file_path, table_name):
             row = json.loads(line.strip())
             a = conn.execute(f"""insert into {table_name} (id, contents, embedding) values (?, ?, ?)""", (row['id'], row['contents'], row['vector']))
 
-load_jsonl_to_table(corpus_file, "corpus")
-load_jsonl_to_table(query_file, "query")
+load_jsonl_to_table(corpus_path, "corpus")
+load_jsonl_to_table(query_path, "query")
 ```
 
 ## BGE-Base Retrieval

@@ -6,7 +6,7 @@ class DuckDB_Searcher(DB_Searcher):
     def __init__(self):
         self.conn = duckdb.connect("duck.db")
 
-    def init_tables(self, table_name, file_path, method):
+    def init_tables(self, table_name, file_path, method, pretokenized=False):
         self.conn.execute(f"drop table if exists {table_name}")
         if method == 'fts':
             self.conn.execute(f"""CREATE TABLE {table_name} (id varchar primary key, contents varchar)""")
@@ -16,14 +16,20 @@ class DuckDB_Searcher(DB_Searcher):
         with open(file_path, 'r') as file:
             for line in file:
                 row = json.loads(line.strip())
-                if method == 'fts':
-                    self.conn.execute(f"insert into {table_name} (id, contents) values (?, ?)", (row['id'], row['contents']))
+                if not pretokenized:
+                    contents = self.tokenize(row['contents'])
                 else:
-                    self.conn.execute(f"""insert into {table_name} (id, contents, embedding) values (?, ?, ?)""", (row['id'], row['contents'], row['vector']))
+                    contents = row['contents']
+                if method == 'fts':
+                    self.conn.execute(f"insert into {table_name} (id, contents) values (?, ?)", (row['id'], contents))
+                else:
+                    self.conn.execute(f"""insert into {table_name} (id, contents, embedding) values (?, ?, ?)""", (row['id'], contents, row['vector']))
         self.conn.execute(f"select count(*) from {table_name}")
         print(f"Loaded {self.conn.fetchone()[0]} rows in {table_name}")
 
-    def fts_search(self, query_string, top_n=5):
+    def fts_search(self, query_string, top_n=5, tokenize_query=False):
+        if tokenize_query:
+            query_string = self.tokenize(query_string)
         query = """
         WITH fts AS (
             SELECT *, COALESCE(fts_main_corpus.match_bm25(id, ?, k:=0.9, b:=0.4), 0) AS score

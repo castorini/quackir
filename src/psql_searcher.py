@@ -7,7 +7,7 @@ class Postgres_Searcher(DB_Searcher):
     def __init__(self):
         self.conn = psycopg2.connect(dbname='beir_datasets', user='postgres')
 
-    def init_tables(self, table_name, file_path, method):
+    def init_tables(self, table_name, file_path, method, pretokenized=False):
         cur = self.conn.cursor()
         cur.execute(f"drop table if exists {table_name}")
 
@@ -18,11 +18,15 @@ class Postgres_Searcher(DB_Searcher):
         
         with open(file_path, 'r') as f:
             for line in f:
-                data = json.loads(line)
-                if method == 'fts':
-                    cur.execute(f"insert into {table_name} (id, contents) values (%s, %s)", (data['id'], data['contents']))
+                row = json.loads(line)
+                if not pretokenized:
+                    contents = self.tokenize(row['contents'])
                 else:
-                    cur.execute(f"insert into {table_name} (id, contents, embedding) values (%s, %s, %s)", (data['id'], data['contents'], data['vector']))
+                    contents = row['contents']
+                if method == 'fts':
+                    cur.execute(f"insert into {table_name} (id, contents) values (%s, %s)", (row['id'], contents))
+                else:
+                    cur.execute(f"insert into {table_name} (id, contents, embedding) values (%s, %s, %s)", (row['id'], contents, row['vector']))
         
         self.conn.commit()
         cur.execute(f"select count(*) from {table_name}")
@@ -34,7 +38,9 @@ class Postgres_Searcher(DB_Searcher):
         ts_query = " | ".join(cleaned_query.split())
         return ts_query
     
-    def fts_search(self, query_string, top_n=5):
+    def fts_search(self, query_string, top_n=5, tokenize_query=False):
+        if tokenize_query:
+            query_string = self.tokenize(query_string)
         ts_query = self.clean_tsquery(query_string)
         query = f"""
         SELECT 

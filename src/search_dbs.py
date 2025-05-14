@@ -21,6 +21,7 @@ if __name__ == "__main__":
     parser.add_argument("--output-file", type=str, required=True)
     parser.add_argument("--db", type=str, choices=["sqlite", "duckdb", "postgres"], required=True)
     parser.add_argument("--method", type=str, choices=["fts", "bge", "rrf"], required=True)
+    parser.add_argument("--pretokenized", action='store_true', required=False)
 
     args = parser.parse_args()
 
@@ -36,8 +37,8 @@ if __name__ == "__main__":
     elif args.db == 'duckdb':
         searcher = DuckDB_Searcher()
 
-    searcher.init_tables("corpus", args.corpus_file, args.method)
-    searcher.init_tables("query", args.query_file, args.method)
+    searcher.init_tables("corpus", args.corpus_file, args.method, args.pretokenized)
+    searcher.init_tables("query", args.query_file, args.method, args.pretokenized)
     if args.method != 'bge':
         searcher.fts_index()
 

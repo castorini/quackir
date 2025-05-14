@@ -6,7 +6,7 @@ class SQLite_Searcher(DB_Searcher):
     def __init__(self):
         self.conn = sqlite3.connect("sqlite.db")
 
-    def init_tables(self, table_name: str, file_path: str, method: str):
+    def init_tables(self, table_name: str, file_path: str, method: str, pretokenized=False):
         self.conn.execute(f"drop table if exists {table_name}")
         self.conn.execute(f"""
             CREATE TABLE {table_name} (
@@ -16,17 +16,23 @@ class SQLite_Searcher(DB_Searcher):
         """)
         with open(file_path, "rt", encoding="utf-8") as file:
             for line in file:
-                row_data = json.loads(line.strip())
+                row = json.loads(line.strip())
+                if not pretokenized:
+                    contents = self.tokenize(row['contents'])
+                else:
+                    contents = row['contents']
                 self.conn.execute(
                     f"""
                     INSERT INTO {table_name} (id, contents) VALUES (?, ?)
                 """,
-                    (row_data["id"], row_data["contents"]),
+                    (row["id"], contents),
                 )
         num_rows = self.conn.execute(f"select count(*) from {table_name}").fetchone()
         print(f"Loaded {num_rows[0]} rows in {table_name}")
 
-    def fts_search(self, query_string, top_n=5):
+    def fts_search(self, query_string, top_n=5, tokenize_query=False):
+        if tokenize_query:
+            query_string = self.tokenize(query_string)
         query = """
         SELECT id, bm25(fts_corpus)*-1 AS score
         FROM fts_corpus

@@ -49,14 +49,15 @@ cur.execute("create extension vector;")
 Then, we initialize tables for our corpus and queries.
 ```python
 def load_jsonl_to_table(file_path, table_name):
+  cur.execute(f"drop table if exists {table_name}")
   cur.execute(f"create table {table_name} (id text, contents text);")
   with open(file_path, 'r') as f:
     for line in f:
       data = json.loads(line)
       cur.execute(f"insert into {table_name} (id, contents) values (%s, %s)", (data['id'], data['contents']))
   conn.commit()
-load_jsonl_to_table('parsed_queries_nfcorpus.jsonl', 'query')
-load_jsonl_to_table('parsed_corpus_nfcorpus.jsonl', 'corpus')
+load_jsonl_to_table('collections/nfcorpus/parsed_queries_nfcorpus.jsonl', 'query')
+load_jsonl_to_table('collections/nfcorpus/parsed_corpus_nfcorpus.jsonl', 'corpus')
 ```
 
 Finally, we create a GIN index to speed up searching. 
@@ -169,7 +170,7 @@ corpus_path = 'indexes/nfcorpus.bge-base-en-v1.5/corpus_embeddings.jsonl'
 query_path = 'indexes/nfcorpus.bge-base-en-v1.5/query_embeddings.jsonl'
 
 def load_jsonl_to_table(file_path, table_name, embedding_size=768):
-  cur.execute(f"create table {table_name} (id text, embedding vector({}));")
+  cur.execute(f"create table {table_name} (id text, embedding vector({embedding_size}));")
   with open(file_path, 'r') as file:
     for line in file:
       row = json.loads(line.strip())

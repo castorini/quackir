@@ -28,6 +28,10 @@ conda install postgresql
 initdb -D mydb
 pg_ctl -D mydb -l logfile start &
 createdb beir_datasets
+psql
+\c beir_datasets
+CREATE EXTENSION vector;
+\q
 ```
 
 When you're done, close the database server with:

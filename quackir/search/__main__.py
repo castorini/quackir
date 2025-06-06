@@ -10,7 +10,7 @@ if __name__ == "__main__":
     _add_db_parser_arguments(parser)
 
     parser.add_argument("--query-file", type=str, required=True, help="Path to the file containing queries in jsonl format with the fields id, contents/vector.")
-    parser.add_argument("--table-name", type=str, default="corpus", help="Name of the table to search in")
+    parser.add_argument("--table-name", type=str, default=["corpus"], nargs='+', help="Name of the table to search in. Accepts two values for hybrid search, one sparse and one dense; one value for sparse or dense search.")
     parser.add_argument("--search-method", type=SearchType, choices=list(SearchType), required=True, help="Method of search to perform.")
     parser.add_argument("--pretokenized", action='store_true', default=False, help="Indicate if the queries are pretokenized. Default is False, meaning the queries will be tokenized during search.")
     parser.add_argument("--top-k", type=int, default=1000, help="Number of top results to return")
@@ -22,9 +22,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
     _load_env(args)
 
-    if args.db_type == SearchDB.SQLITE and args.search_method != SearchType.FTS:
+    if args.db_type == SearchDB.SQLITE and args.search_method != None and args.search_method != SearchType.SPARSE:
         print("Sorry, SQLite search currently only supports the sparse method.")
         sys.exit()
+    if len(args.table_name) > 2:
+        raise ValueError("Invalid number of table names provided. Must be 1 or 2.")
+    if len(args.table_name) == 2 and args.search_method != None and args.search_method != SearchType.HYBRID:
+        raise ValueError("If two table names are provided, the search method must be Hybrid (Reciprocal Rank Fusion).")
+    if args.search_method == SearchType.HYBRID and len(args.table_name) != 2:
+        raise ValueError("Hybrid search requires exactly two table names, one for sparse and one for dense search.")
 
     searcher = get_searcher(
         db_type=args.db_type,
@@ -32,7 +38,18 @@ if __name__ == "__main__":
         db_name=args.db_name,
         user=args.user
     )
-    
+
+    if not args.search_method:
+        if len(args.table_name) == 1:
+            args.search_method = searcher.get_search_type(table_name=args.table_name[0])
+        elif len(args.table_name) == 2:
+            searcher_type1 = searcher.get_search_type(table_name=args.table_name[0])
+            searcher_type2 = searcher.get_search_type(table_name=args.table_name[1])
+            if searcher_type1 != searcher_type2 and (searcher_type1 == SearchType.SPARSE or searcher_type1 == SearchType.DENSE) and (searcher_type2 == SearchType.SPARSE or searcher_type2 == SearchType.DENSE):
+                args.search_method = SearchType.RRF
+            else:
+                raise ValueError("If two table names are provided, they must be of different types (sparse and dense) for hybrid search.")
+
     if not args.run_tag:
         args.run_tag = f"{args.search_method.value}_{args.db_type.value}"
 

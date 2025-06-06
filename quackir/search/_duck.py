@@ -1,10 +1,19 @@
 import duckdb
-from ._base import DBSearcher
-import numpy as np
+from ._base import DBSearcher, SearchType
 
 class DuckDBSearcher(DBSearcher):
     def __init__(self, db_path="duck.db"):
         self.conn = duckdb.connect(db_path)
+
+    def get_search_type(self, table_name: str) -> SearchType:
+        table_description = self.conn.execute(f"DESCRIBE {table_name}").fetchall()
+        column_names = [row[0] for row in table_description]
+        if "embedding" in column_names:
+            return SearchType.DENSE
+        elif "contents" in column_names:
+            return SearchType.SPARSE
+        else:
+            raise ValueError(f"Unknown search type for table {table_name}. Ensure it has either an 'embedding' column or a 'contents' column.")
 
     def fts_search(self, query_string, top_n=5, table_name="corpus"):
         query = f"""
@@ -35,7 +44,9 @@ class DuckDBSearcher(DBSearcher):
         """
         return self.conn.execute(query).fetchall()
 
-    def rrf_search(self, query_string, query_embedding, top_n=5, k=60, table_name="corpus"):
+    def rrf_search(self, query_string, query_embedding, top_n=5, k=60, table_name=["sparse", "dense"]):
+        sparse_table = table_name[0] if self.get_search_type(table_name[0]) == SearchType.SPARSE else table_name[1]
+        dense_table = table_name[1] if self.get_search_type(table_name[1]) == SearchType.DENSE else table_name[0]
         embd_size = len(query_embedding)
         query_embedding = str(query_embedding)
         query = f"""
@@ -44,15 +55,15 @@ class DuckDBSearcher(DBSearcher):
             SELECT array{query_embedding}::DOUBLE[{embd_size}] AS embedding
         ),
         embd AS (
-            SELECT {table_name}.id,
-                ROW_NUMBER() OVER (ORDER BY array_cosine_similarity({table_name}.embedding, query_embedding.embedding) DESC) AS sim_rank
-            FROM {table_name}, query_embedding
+            SELECT {dense_table}.id,
+                ROW_NUMBER() OVER (ORDER BY array_cosine_similarity({dense_table}.embedding, query_embedding.embedding) DESC) AS sim_rank
+            FROM {dense_table}, query_embedding
             limit {top_n}
         ),
         fts AS (
             SELECT id, 
-                ROW_NUMBER() OVER (ORDER BY COALESCE(fts_main_{table_name}.match_bm25(id, ?), 0) DESC) AS fts_rank
-            FROM {table_name}
+                ROW_NUMBER() OVER (ORDER BY COALESCE(fts_main_{sparse_table}.match_bm25(id, ?), 0) DESC) AS fts_rank
+            FROM {sparse_table}
             limit {top_n}
         ),
         combined_results AS (

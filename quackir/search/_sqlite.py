@@ -1,9 +1,17 @@
 import sqlite3
-from ._base import DBSearcher
+from ._base import DBSearcher, SearchType
 
 class SQLiteSearcher(DBSearcher):
     def __init__(self, db_path="sqlite.db"):
         self.conn = sqlite3.connect(db_path)
+
+    def get_search_type(self, table_name: str) -> SearchType:
+        cur = self.conn.execute('select * from bar')
+        names = list(map(lambda x: x[0], cur.description))
+        if "contents" in names:
+            return SearchType.SPARSE
+        else:
+            raise ValueError(f"Unknown search type for table {table_name}. Ensure it has a 'contents' column. SQLite only supports sparse search currently.")
 
     def fts_search(self, query_string, top_n=5, table_name="corpus"):
         query = f"""

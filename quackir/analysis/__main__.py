@@ -17,6 +17,7 @@
 from pyserini.analysis import Analyzer, get_lucene_analyzer
 import argparse
 import json
+import os
 
 analyzer = Analyzer(get_lucene_analyzer())
 
@@ -26,7 +27,7 @@ def tokenize(to_tokenize):
 def tokenize_file(input_file):
     tokenized_data = []
     if '.jsonl' in input_file:
-        with open(args.input_file, 'r') as f:
+        with open(input_file, 'r') as f:
             for line in f:
                 obj = json.loads(line.strip())
                 obj_items = list(obj.items())
@@ -42,7 +43,7 @@ def tokenize_file(input_file):
                 tokenized_data.append({id: tokenize(content)})
     elif '.tsv' in input_file:
         open_cmd = open
-        if args.input_file.endswith('.gz'):
+        if input_file.endswith('.gz'):
             import gzip
             open_cmd = gzip.open
         with open_cmd(args.input_file, 'r') as f:
@@ -66,10 +67,18 @@ def save_tokenized_data(tokenized_data, output_file):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input-file", type=str, required=True,
-                        help="Path to the input file containing text to tokenize.")
-    parser.add_argument("--output-file", type=str, required=True,
+    parser.add_argument("--input", type=str, required=True,
+                        help="Path to the input file/directory containing text to tokenize.")
+    parser.add_argument("--output", type=str, required=True,
                         help="Path to the output file where tokenized text will be saved.")
     args = parser.parse_args()
 
-    save_tokenized_data(tokenize_file(args.input_file), args.output_file)
+    all_data = []
+    if os.path.isdir(args.input):
+        with os.scandir(args.input) as entries:
+            for entry in entries:
+                if entry.is_file() and (entry.name.endswith('.jsonl') or entry.name.endswith('.tsv')):
+                    all_data.extend(tokenize_file(entry.path))
+    else:
+        all_data = tokenize_file(args.input)
+    save_tokenized_data(all_data, args.output)

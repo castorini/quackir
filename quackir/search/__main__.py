@@ -1,4 +1,4 @@
-from quackir.common.enums import SearchType, SearchDB
+from quackir._base import SearchType, SearchDB, _add_db_parser_arguments, _load_env
 from ._util import get_searcher, _custom_sort_key
 import argparse
 import json
@@ -7,10 +7,7 @@ from tqdm import tqdm
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Search for queries in a database.")
-    parser.add_argument("--db-type", type=SearchDB, choices=list(SearchDB), required=True, help="Type of database to use.")
-    parser.add_argument("--db-path", type=str, default="database.db", help="Path to the database file used for DuckDB and SQLite. Ignored for Postgres.")
-    parser.add_argument("--db-name", type=str, default="quackir", help="Name of the database for Postgres. Ignored for DuckDB and SQLite.")
-    parser.add_argument("--user", type=str, default="postgres", help="Username for Postgres. Ignored for DuckDB and SQLite.")
+    _add_db_parser_arguments(parser)
 
     parser.add_argument("--query-file", type=str, required=True, help="Path to the file containing queries in jsonl format with the fields id, contents/vector.")
     parser.add_argument("--table-name", type=str, default="corpus", help="Name of the table to search in")
@@ -23,9 +20,10 @@ if __name__ == "__main__":
     parser.add_argument("--run-tag", type=str, help="Tag to identify the run in the output file")
 
     args = parser.parse_args()
+    _load_env(args)
 
     if args.db_type == SearchDB.SQLITE and args.search_method != SearchType.FTS:
-        print("Sorry, SQLite search currently only supports the fts method.")
+        print("Sorry, SQLite search currently only supports the sparse method.")
         sys.exit()
 
     searcher = get_searcher(

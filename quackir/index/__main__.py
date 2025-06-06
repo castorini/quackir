@@ -1,13 +1,11 @@
-from quackir._base import SearchDB, IndexType
+from quackir._base import IndexType, _add_db_parser_arguments, _load_env, SearchDB
 from ._util import get_indexer
+import sys
 import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Initialize and index a database.")
-    parser.add_argument("--db-type", type=SearchDB, choices=list(SearchDB), required=True, help="Type of database to use.")
-    parser.add_argument("--db-path", type=str, default="database.db", help="Path to the database file used for DuckDB and SQLite. Ignored for Postgres.")
-    parser.add_argument("--db-name", type=str, default="quackir", help="Name of the database for Postgres. Ignored for DuckDB and SQLite.")
-    parser.add_argument("--user", type=str, default="postgres", help="Username for Postgres. Ignored for DuckDB and SQLite.")
+    _add_db_parser_arguments(parser)
 
     parser.add_argument("--table-name", type=str, default="corpus", help="Name of the table to create")
     parser.add_argument("--file-path", type=str, required=True, help="Path to the file containing data. Must be in jsonl format with 'id' and either/or 'contents', 'vector' fields.") 
@@ -16,6 +14,10 @@ if __name__ == "__main__":
     parser.add_argument("--embedding-dim", type=int, default=768, help="Dimension of the embedding vector")
 
     args = parser.parse_args()
+    _load_env(args)
+    if args.db_type == SearchDB.SQLITE and args.index_type != IndexType.SPARSE:
+        print("Sorry, SQLite indexing currently only supports the sparse method.")
+        sys.exit()
 
     indexer = get_indexer(
         db_type=args.db_type,

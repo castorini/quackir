@@ -4,7 +4,7 @@ from ._postgres import PostgresSearcher
 from quackir._base import SearchDB
 import re
 
-def get_searcher(db_type: SearchDB, db_path: str = "database.db", db_name: str = "quackir", user: str = "postgres") -> object:
+def get_searcher(db_type: SearchDB, db_path: str = "database.db", db_name: str = "quackir", db_user: str = "postgres") -> object:
     """
     Factory function to get the appropriate searcher based on the database type.
     
@@ -22,7 +22,7 @@ def get_searcher(db_type: SearchDB, db_path: str = "database.db", db_name: str =
     elif db_type == SearchDB.SQLITE:
         return SQLiteSearcher(db_path)
     elif db_type == SearchDB.POSTGRES:
-        return PostgresSearcher(db_name, user)
+        return PostgresSearcher(db_name, db_user)
     else:
         raise ValueError(f"Unsupported database type: {db_type}")
 

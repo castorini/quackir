@@ -3,7 +3,7 @@ from ._sqlite import SQLiteIndexer
 from ._postgres import PostgresIndexer
 from quackir._base import SearchDB
 
-def get_indexer(db_type: SearchDB, db_path: str = "database.db", db_name: str = "quackir", user: str = "postgres") -> object:
+def get_indexer(db_type: SearchDB, db_path: str = "database.db", db_name: str = "quackir", db_user: str = "postgres") -> object:
     """
     Factory function to get the appropriate indexer based on the database type.
     
@@ -21,6 +21,6 @@ def get_indexer(db_type: SearchDB, db_path: str = "database.db", db_name: str = 
     elif db_type == SearchDB.SQLITE:
         return SQLiteIndexer(db_path)
     elif db_type == SearchDB.POSTGRES:
-        return PostgresIndexer(db_name, user)
+        return PostgresIndexer(db_name, db_user)
     else:
         raise ValueError(f"Unsupported database type: {db_type}")

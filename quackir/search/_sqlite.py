@@ -1,7 +1,8 @@
 import sqlite3
-from ._base import DBSearcher, SearchType
+from ._base import Searcher
+from quackir._base import SearchType
 
-class SQLiteSearcher(DBSearcher):
+class SQLiteSearcher(Searcher):
     def __init__(self, db_path="sqlite.db"):
         self.conn = sqlite3.connect(db_path)
 

@@ -1,7 +1,7 @@
 from ._duck import DuckDBSearcher
 from ._sqlite import SQLiteSearcher
 from ._postgres import PostgresSearcher
-from quackir.common.enums import SearchDB
+from quackir._base import SearchDB
 import re
 
 def get_searcher(db_type: SearchDB, db_path: str = "database.db", db_name: str = "quackir", user: str = "postgres") -> object:

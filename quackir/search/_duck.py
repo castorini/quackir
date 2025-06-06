@@ -1,7 +1,8 @@
 import duckdb
-from ._base import DBSearcher, SearchType
+from ._base import Searcher
+from quackir._base import SearchType
 
-class DuckDBSearcher(DBSearcher):
+class DuckDBSearcher(Searcher):
     def __init__(self, db_path="duck.db"):
         self.conn = duckdb.connect(db_path)
 

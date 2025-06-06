@@ -2,7 +2,7 @@ from quackir._base import SearchType
 from quackir.analysis import tokenize
 from abc import ABC, abstractclassmethod
 
-class DBSearcher(ABC):
+class Searcher(ABC):
     @staticmethod
     def filter_id(results, query_id):
         return [res for res in results if res[0] != query_id]

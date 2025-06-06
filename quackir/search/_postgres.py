@@ -1,8 +1,9 @@
 import psycopg2
 import re
-from ._base import DBSearcher, SearchType
+from ._base import Searcher
+from quackir._base import SearchType
 
-class PostgresSearcher(DBSearcher):
+class PostgresSearcher(Searcher):
     def __init__(self, db_name="quackir", user="postgres"):
         self.conn = psycopg2.connect(dbname=db_name, user=user)
 

@@ -20,7 +20,7 @@ class DuckDBSearcher(Searcher):
         query = f"""
         WITH fts AS (
             SELECT *, COALESCE(fts_main_{table_name}.match_bm25(id, ?, k:=0.9, b:=0.4), 0) AS score
-            FROM corpus
+            FROM {table_name}
         )
         SELECT id, score
         FROM fts
@@ -63,7 +63,7 @@ class DuckDBSearcher(Searcher):
         ),
         fts AS (
             SELECT id, 
-                ROW_NUMBER() OVER (ORDER BY COALESCE(fts_main_{sparse_table}.match_bm25(id, ?), 0) DESC) AS fts_rank
+                ROW_NUMBER() OVER (ORDER BY COALESCE(fts_main_{sparse_table}.match_bm25(id, ?, k:=0.9, b:=0.4), 0) DESC) AS fts_rank
             FROM {sparse_table}
             limit {top_n}
         ),

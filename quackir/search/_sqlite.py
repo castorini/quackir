@@ -7,7 +7,7 @@ class SQLiteSearcher(Searcher):
         self.conn = sqlite3.connect(db_path)
 
     def get_search_type(self, table_name: str) -> SearchType:
-        cur = self.conn.execute('select * from bar')
+        cur = self.conn.execute(f'select * from {table_name}')
         names = list(map(lambda x: x[0], cur.description))
         if "contents" in names:
             return SearchType.SPARSE

@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--topics", type=str, required=True, help="Path to the file containing queries in jsonl format with the fields id, contents/vector.")
     parser.add_argument("--index", type=str, default=["corpus"], nargs='+', help="Name of the table to search in. Accepts two values for hybrid search, one sparse and one dense; one value for sparse or dense search.")
-    parser.add_argument("--search-method", type=SearchType, choices=list(SearchType), required=True, help="Method of search to perform.")
+    parser.add_argument("--search-method", type=SearchType, choices=list(SearchType), help="Method of search to perform.")
     parser.add_argument("--pretokenized", action='store_true', default=False, help="Indicate if the queries are pretokenized. Default is False, meaning the queries will be tokenized during search.")
     parser.add_argument("--hits", type=int, default=1000, help="Number of top results to return")
     parser.add_argument("--rrf-k", type=int, default=60, help="Parameter k needed for reciprocal rank fusion. Ignored for other search methods.")
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     all_results.sort(key=_custom_sort_key) 
 
-    with open(args.output_path, "w") as f:
+    with open(args.output, "w") as f:
         for query_id, doc_id, score, rank in all_results:
             f.write(f"{query_id} Q0 {doc_id} {rank} {score} {args.run_tag}\n")
-    print(f"Search results saved to {args.output_path}")
+    print(f"Search results saved to {args.output}")

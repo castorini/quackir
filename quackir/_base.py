@@ -38,7 +38,7 @@ def _load_env(args):
     args.db_type = os.getenv('DB_TYPE', args.db_type)
     args.db_path = os.getenv('DB_PATH', args.db_path)
     args.db_name = os.getenv('DB_NAME', args.db_name)
-    args.db_user = os.getenv('DB_USER', args.user)
+    args.db_user = os.getenv('DB_USER', args.db_user)
     if not args.db_type:
         raise ValueError("Database type must be specified using --db-type or DB_TYPE environment variable.")
     if args.db_type == SearchDB.POSTGRES:

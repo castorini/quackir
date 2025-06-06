@@ -1,9 +1,13 @@
 from enum import Enum
 
+class IndexType(Enum):
+    SPARSE = 'sparse'
+    DENSE = 'dense'
+
 class SearchType(Enum):
-    FTS = 'fts'
-    EMBD = 'embd'
-    RRF = 'rrf'
+    SPARSE = 'sparse'
+    DENSE = 'dense'
+    HYBRID = 'hybrid'
 
 class SearchDB(Enum):
     DUCKDB = 'duckdb'

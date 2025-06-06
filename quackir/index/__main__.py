@@ -1,4 +1,4 @@
-from quackir.common.enums import SearchType, SearchDB
+from quackir._base import SearchDB, IndexType
 from ._util import get_indexer
 import argparse
 
@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--table-name", type=str, default="corpus", help="Name of the table to create")
     parser.add_argument("--file-path", type=str, required=True, help="Path to the file containing data. Must be in jsonl format with 'id' and either/or 'contents', 'vector' fields.") 
-    parser.add_argument("--index-type", type=SearchType, choices=list(SearchType), required=True, help="Type of index to create.")
+    parser.add_argument("--index-type", type=IndexType, choices=list(IndexType), required=True, help="Type of index to create.")
     parser.add_argument("--pretokenized", action='store_true', default=False, help="Indicate if the contents are pretokenized. Default is False, meaning the contents will be tokenized during indexing.")
     parser.add_argument("--embedding-dim", type=int, default=768, help="Dimension of the embedding vector")
 
@@ -25,5 +25,5 @@ if __name__ == "__main__":
     )
 
     indexer.init_table(args.table_name, args.file_path, args.index_type, args.pretokenized, args.embedding_dim)
-    if args.index_type == SearchType.FTS:
+    if args.index_type == IndexType.SPARSE:
         indexer.fts_index(args.table_name)

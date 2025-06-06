@@ -1,5 +1,5 @@
 from ._base import DBIndexer
-from quackir.common.enums import SearchType
+from quackir._base import IndexType
 from quackir.analysis import tokenize
 import sqlite3
 from tqdm import tqdm
@@ -9,8 +9,8 @@ class SQLiteIndexer(DBIndexer):
     def __init__(self, db_path="sqlite.db"):
         self.conn = sqlite3.connect(db_path)
 
-    def init_table(self, table_name: str, file_path: str, index_type: str, pretokenized=False, embedding_dim=768): 
-        if index_type != SearchType.FTS:
+    def init_table(self, table_name: str, file_path: str, index_type: IndexType, pretokenized=False, embedding_dim=768): 
+        if index_type != IndexType.SPARSE:
             raise ValueError(f"SQLite only supports FTS indexing, got {index_type}")
         self.conn.execute(f"DROP TABLE IF EXISTS {table_name}")
         self.conn.execute(f"""

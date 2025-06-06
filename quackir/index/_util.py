@@ -1,7 +1,7 @@
 from ._duck import DuckDBIndexer
 from ._sqlite import SQLiteIndexer
 from ._postgres import PostgresIndexer
-from quackir.common.enums import SearchDB
+from quackir._base import SearchDB
 
 def get_indexer(db_type: SearchDB, db_path: str = "database.db", db_name: str = "quackir", user: str = "postgres") -> object:
     """

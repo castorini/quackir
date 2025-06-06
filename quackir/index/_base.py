@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from quackir._base import IndexType
 
-class DBIndexer(ABC):
+class Indexer(ABC):
     @staticmethod
     def count_lines(filename):
        with open(filename, 'r') as file:

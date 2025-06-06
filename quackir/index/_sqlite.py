@@ -1,11 +1,11 @@
-from ._base import DBIndexer
+from ._base import Indexer
 from quackir._base import IndexType
 from quackir.analysis import tokenize
 import sqlite3
 from tqdm import tqdm
 import json
 
-class SQLiteIndexer(DBIndexer):
+class SQLiteIndexer(Indexer):
     def __init__(self, db_path="sqlite.db"):
         self.conn = sqlite3.connect(db_path)
 

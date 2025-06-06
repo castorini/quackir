@@ -1,11 +1,11 @@
-from ._base import DBIndexer
+from ._base import Indexer
 from quackir._base import IndexType
 from quackir.analysis import tokenize
 import psycopg2
 from tqdm import tqdm
 import json
 
-class PostgresIndexer(DBIndexer):
+class PostgresIndexer(Indexer):
     def __init__(self, db_name="quackir", user="postgres"):
         self.conn = psycopg2.connect(dbname=db_name, user=user)
 

@@ -1,11 +1,11 @@
-from ._base import DBIndexer
+from ._base import Indexer
 from quackir._base import IndexType
 from quackir.analysis import tokenize
 import duckdb
 from tqdm import tqdm
 import json
 
-class DuckDBIndexer(DBIndexer):
+class DuckDBIndexer(Indexer):
     def __init__(self, db_path="duck.db"):
         self.conn = duckdb.connect(db_path)
 

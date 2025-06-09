@@ -47,7 +47,6 @@ import psycopg2
 import json
 conn = psycopg2.connect(dbname='beir_datasets', user='postgres')
 cur = conn.cursor()
-cur.execute("create extension vector;")
 ```
 
 Then, we initialize tables for our corpus and queries.
@@ -166,6 +165,7 @@ import psycopg2
 import json
 conn = psycopg2.connect(dbname='beir_datasets', user='postgres')
 cur = conn.cursor()
+cur.execute("create extension vector;")
 ```
 
 Then, we initialize tables for our corpus and queries.

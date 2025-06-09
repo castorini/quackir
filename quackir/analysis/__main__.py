@@ -14,15 +14,10 @@
 # limitations under the License.
 #
 
-from pyserini.analysis import Analyzer, get_lucene_analyzer
+from ._base import tokenize
 import argparse
 import json
 import os
-
-analyzer = Analyzer(get_lucene_analyzer())
-
-def tokenize(to_tokenize):
-    return ' '.join(analyzer.analyze(to_tokenize))
 
 def tokenize_file(input_file):
     tokenized_data = []
@@ -46,7 +41,7 @@ def tokenize_file(input_file):
         if input_file.endswith('.gz'):
             import gzip
             open_cmd = gzip.open
-        with open_cmd(args.input_file, 'r') as f:
+        with open_cmd(input_file, 'rt') as f:
             for line in f:
                 parts = line.strip().split('\t')
                 id = parts[0]
@@ -59,10 +54,9 @@ def tokenize_file(input_file):
 
 def save_tokenized_data(tokenized_data, output_file):
     with open(output_file, 'w') as f:
-        with open(output_file, 'w') as f:
-            for item in tokenized_data:
-                s = json.dumps({"id": list(item.keys())[0], "contents": list(item.values())[0]})
-                f.write(s + '\n')
+        for item in tokenized_data:
+            s = json.dumps({"id": list(item.keys())[0], "contents": list(item.values())[0]})
+            f.write(s + '\n')
     print(f"Tokenized data saved to {output_file}")
 
 if __name__ == "__main__":

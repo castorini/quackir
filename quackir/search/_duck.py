@@ -9,10 +9,10 @@ class DuckDBSearcher(Searcher):
     def get_search_type(self, table_name: str) -> SearchType:
         table_description = self.conn.execute(f"DESCRIBE {table_name}").fetchall()
         column_names = [row[0] for row in table_description]
-        if "embedding" in column_names:
-            return SearchType.DENSE
-        elif "contents" in column_names:
+        if "contents" in column_names:
             return SearchType.SPARSE
+        elif "embedding" in column_names:
+            return SearchType.DENSE
         else:
             raise ValueError(f"Unknown search type for table {table_name}. Ensure it has either an 'embedding' column or a 'contents' column.")
 

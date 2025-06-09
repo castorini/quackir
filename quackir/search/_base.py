@@ -9,7 +9,7 @@ class Searcher(ABC):
 
     def search(self, method: SearchType, query_id: str, query_string: str = None, query_embedding: str = None, top_n=5, tokenize_query=True, table_name=["corpus"], rrf_k=60):
         results = []
-        if tokenize_query:
+        if method != SearchType.DENSE and tokenize_query:
             query_string = tokenize(query_string)
         if method == SearchType.SPARSE:
             results = self.fts_search(query_string, top_n=top_n, table_name=table_name[0])

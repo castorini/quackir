@@ -18,10 +18,10 @@ class PostgresSearcher(Searcher):
         cur = self.conn.cursor()
         cur.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = %s", (table_name,))
         columns = [row[0] for row in cur.fetchall()]
-        if "embedding" in columns:
-            return SearchType.DENSE
-        elif "contents" in columns:
+        if "contents" in columns:
             return SearchType.SPARSE
+        elif "embedding" in columns:
+            return SearchType.DENSE
         else:
             raise ValueError(f"Unknown search type for table {table_name}. Ensure it has either an 'embedding' column or a 'contents' column.")
     

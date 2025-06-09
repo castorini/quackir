@@ -1,8 +1,9 @@
-from quackir._base import SearchType, SearchDB, _add_db_parser_arguments, _load_env
+from quackir._base import SearchType, SearchDB, _add_db_parser_arguments, _load_env, sanitize_table_name
 from ._util import get_searcher, _custom_sort_key
 import argparse
 import json
 import sys
+import gzip
 from tqdm import tqdm
 
 if __name__ == "__main__":
@@ -10,8 +11,8 @@ if __name__ == "__main__":
     _add_db_parser_arguments(parser)
 
     parser.add_argument("--topics", type=str, required=True, help="Path to the file containing queries in jsonl format with the fields id, contents/vector.")
-    parser.add_argument("--index", type=str, default=["corpus"], nargs='+', help="Name of the table to search in. Accepts two values for hybrid search, one sparse and one dense; one value for sparse or dense search.")
     parser.add_argument("--search-method", type=SearchType, choices=list(SearchType), help="Method of search to perform.")
+    parser.add_argument("--index", type=str, default=["corpus"], nargs='+', help="Name of the table to search in. Accepts two values for hybrid search, one sparse and one dense; one value for sparse or dense search.")
     parser.add_argument("--pretokenized", action='store_true', default=False, help="Indicate if the queries are pretokenized. Default is False, meaning the queries will be tokenized during search.")
     parser.add_argument("--hits", type=int, default=1000, help="Number of top results to return")
     parser.add_argument("--rrf-k", type=int, default=60, help="Parameter k needed for reciprocal rank fusion. Ignored for other search methods.")
@@ -39,6 +40,8 @@ if __name__ == "__main__":
         db_user=args.db_user
     )
 
+    args.index = [sanitize_table_name(index) for index in args.index]
+
     if not args.search_method:
         if len(args.index) == 1:
             args.search_method = searcher.get_search_type(table_name=args.index[0])
@@ -54,7 +57,10 @@ if __name__ == "__main__":
         args.run_tag = f"{args.search_method.value}_{args.db_type.value}"
 
     queries = []
-    with open(args.topics, 'r') as f:
+    open_cmd = open
+    if args.topics.endswith('.gz'):
+        open_cmd = gzip.open
+    with open_cmd(args.topics, 'rt') as f:
         for line in f:
             query = json.loads(line.strip())
             queries.append(query)
@@ -62,9 +68,10 @@ if __name__ == "__main__":
 
     all_results = []
     for query in tqdm(queries, desc=f"Processing {args.run_tag}", unit="query", total=len(queries)):
+        query_id = query.get("id", query.get("qid", None))
         results = searcher.search(
             method=args.search_method,
-            query_id=query["id"],
+            query_id=query_id,
             query_string=query.get("contents", None),
             query_embedding=query.get("vector", None),
             top_n=args.hits,
@@ -73,7 +80,7 @@ if __name__ == "__main__":
             rrf_k=args.rrf_k
         )
         for rank, (doc_id, score) in enumerate(results, 1):
-            all_results.append((query["id"], doc_id, score, rank))
+            all_results.append((query_id, doc_id, score, rank))
 
     all_results.sort(key=_custom_sort_key) 
 

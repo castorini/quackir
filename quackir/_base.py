@@ -17,6 +17,13 @@ class SearchDB(Enum):
     SQLITE = 'sqlite'
     POSTGRES = 'postgres'
 
+def count_lines(filename, open_cmd):
+    with open_cmd(filename, 'r') as file:
+        return sum(1 for _ in file)
+
+def sanitize_table_name(table_name: str):
+    return table_name.replace("-", "_")
+
 def _add_db_parser_arguments(parser: argparse.ArgumentParser):
     """
     Adds common arguments to the provided parser for database and search configurations.

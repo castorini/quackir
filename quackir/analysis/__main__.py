@@ -15,41 +15,53 @@
 #
 
 from ._base import tokenize
+from quackir._base import count_lines
 import argparse
 import json
 import os
-
-def tokenize_file(input_file):
+import gzip
+from tqdm import tqdm 
+    
+def tokenize_tsv_file(input_file, open_cmd, num_lines):
     tokenized_data = []
-    if '.jsonl' in input_file:
-        with open(input_file, 'r') as f:
-            for line in f:
-                obj = json.loads(line.strip())
-                obj_items = list(obj.items())
-                if not obj_items:
-                    continue
-                _, id = obj_items[0]
-                if 'title' in obj and 'text' in obj:
-                    content = f"{obj['title']} {obj['text']}"
-                elif 'contents' in obj:
-                    content = obj['contents']
-                else:
-                    content = ' '.join(str(v) for k, v in obj_items[1:])
-                tokenized_data.append({id: tokenize(content)})
-    elif '.tsv' in input_file:
-        open_cmd = open
-        if input_file.endswith('.gz'):
-            import gzip
-            open_cmd = gzip.open
-        with open_cmd(input_file, 'rt') as f:
-            for line in f:
-                parts = line.strip().split('\t')
-                id = parts[0]
-                content = ' '.join(parts[1:])
-                tokenized_data.append({id: tokenize(content)})
+    with open_cmd(input_file, 'rt') as f:
+        for line in tqdm(f, total=num_lines, desc="Processing lines"):
+            parts = line.strip().split('\t')
+            id = parts[0]
+            content = ' '.join(parts[1:])
+            tokenized_data.append({id: tokenize(content)})    
+    return tokenized_data
+
+def tokenize_json_file(input_file, open_cmd, num_lines):
+    tokenized_data = []
+    with open_cmd(input_file, 'rt') as f:
+        for line in tqdm(f, total=num_lines, desc="Processing lines"):
+            obj = json.loads(line.strip())
+            obj_items = list(obj.items())
+            if not obj_items:
+                continue
+            _, id = obj_items[0]
+            if 'title' in obj and 'text' in obj:
+                content = f"{obj['title']} {obj['text']}"
+            elif 'contents' in obj:
+                content = obj['contents']
+            else:
+                content = ' '.join(str(v) for k, v in obj_items[1:])
+            tokenized_data.append({id: tokenize(content)})
+    return tokenized_data
+
+def tokenize_file(filename):
+    open_cmd = open
+    if filename.endswith('.gz'):
+        open_cmd = gzip.open
+    num_lines = count_lines(filename, open_cmd)
+    if '.jsonl' in filename:
+        tokenized_data = tokenize_json_file(filename, open_cmd, num_lines)
+    elif '.tsv' in filename:
+        tokenized_data = tokenize_tsv_file(filename, open_cmd, num_lines)
     else:
-        raise ValueError("Unsupported file format. Please provide a .jsonl or .tsv file.")
-    print(f"Tokenized {len(tokenized_data)} items from {input_file}")
+        return []
+    print(f"Tokenized {len(tokenized_data)} items from {filename}")
     return tokenized_data
 
 def save_tokenized_data(tokenized_data, output_file):
@@ -64,14 +76,14 @@ if __name__ == "__main__":
     parser.add_argument("--input", type=str, required=True,
                         help="Path to the input file/directory containing text to tokenize.")
     parser.add_argument("--output", type=str, required=True,
-                        help="Path to the output file where tokenized text will be saved.")
+                        help="Path to the output file where the tokenized text will be saved.")
     args = parser.parse_args()
 
     all_data = []
     if os.path.isdir(args.input):
         with os.scandir(args.input) as entries:
             for entry in entries:
-                if entry.is_file() and (entry.name.endswith('.jsonl') or entry.name.endswith('.tsv')):
+                if entry.is_file():
                     all_data.extend(tokenize_file(entry.path))
     else:
         all_data = tokenize_file(args.input)

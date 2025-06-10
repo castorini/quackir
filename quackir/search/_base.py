@@ -1,6 +1,22 @@
+#
+# QuackIR: Reproducible IR research in RDBMS
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 from quackir._base import SearchType
 from quackir.analysis import tokenize
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 
 class Searcher(ABC):
     @staticmethod
@@ -22,7 +38,7 @@ class Searcher(ABC):
         
         return self.filter_id(results, query_id)
     
-    @abstractclassmethod
+    @abstractmethod
     def get_search_type(self, table_name: str) -> SearchType:
         """
         Returns the type of search this class implements.
@@ -30,14 +46,14 @@ class Searcher(ABC):
         """
         pass
     
-    @abstractclassmethod
+    @abstractmethod
     def fts_search(self, query_string: str, top_n=5, table_name="corpus"):
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def embedding_search(self, query_embedding: str, top_n=5, table_name="corpus"):
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def rrf_search(self, query_string: str, query_embedding: str, top_n=5, k=60, table_name=["sparse", "dense"]):
         pass

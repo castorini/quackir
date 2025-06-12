@@ -35,14 +35,14 @@ class DuckDBIndexer(Indexer):
         
     def load_jsonl_table(self, table_name: str, file_path: str, index_type: IndexType, pretokenized=False):
         with open(file_path, 'r') as file:
-            for line in file:
-                row = json.loads(line.strip())
-                if not pretokenized and index_type == IndexType.SPARSE:
-                    row["contents"] = tokenize(row['contents'])
-                if index_type == IndexType.SPARSE:
-                    self.conn.execute(f"insert into {table_name} (id, contents) values (?, ?)", (row['id'], row['contents']))
-                elif index_type == IndexType.DENSE:
-                    self.conn.execute(f"""insert into {table_name} (id, embedding) values (?, ?)""", (row['id'], row['vector']))
+            data = [json.loads(line) for line in file]
+        rows = [[d["id"], d["contents"] if "contents" in d else d["vector"]] for d in data]
+        if index_type == IndexType.SPARSE and not pretokenized:
+            rows = [[d["id"], tokenize(d["contents"])] for d in data]
+        if index_type == IndexType.SPARSE:
+            self.conn.executemany(f"insert into {table_name} (id, contents) values (?, ?)", rows)
+        elif index_type == IndexType.DENSE:
+            self.conn.executemany(f"""insert into {table_name} (id, embedding) values (?, ?)""", rows)
  
     def load_parquet_table(self, table_name: str, file_path: str, index_type: IndexType, pretokenized=False):
         column_names = self.conn.execute(f"DESCRIBE SELECT * FROM read_parquet('{file_path}')").fetchall()

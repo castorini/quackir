@@ -78,7 +78,11 @@ if __name__ == "__main__":
         open_cmd = gzip.open
     with open_cmd(args.topics, 'rt') as f:
         for line in f:
-            query = json.loads(line.strip())
+            if '.jsonl' in args.topics:
+                query = json.loads(line.strip())
+            elif '.tsv' in args.topics:
+                parts = line.strip().split('\t')
+                query = {"id": parts[0], "contents": parts[1]}
             queries.append(query)
     print(f"Loaded {len(queries)} queries from {args.topics}")
 

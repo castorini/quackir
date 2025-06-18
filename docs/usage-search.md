@@ -13,7 +13,7 @@ For more details, see this [guide](./db-options.md).
 
 + `--topics` [Required]: 
 Path to the file containing queries in jsonl format.
-Files can be compressed with `gzip`, and must be in `jsonl` format with the fields `id`, and the field `contents` if the `search-method` is `sparse`, or the field `vector` if the `search-method` is `dense`, or both if the `search-method` is `hybrid`. 
+Files can be compressed with `gzip`, and can be either in `jsonl` format with the fields `id`, and the field `contents` if the `search-method` is `sparse`, or the field `vector` if the `search-method` is `dense`, or both if the `search-method` is `hybrid` or `tsv` format with the first column as the id and the second and the contents (available only for sparse retrieval). 
 After the queries are successfully loaded, a message is printed with how many queries were loaded. 
 
 + `--output` [Required]: 

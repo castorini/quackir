@@ -18,8 +18,10 @@ from ._base import Indexer
 from quackir._base import IndexType
 from quackir.analysis import tokenize
 import psycopg2
+from psycopg2.extras import execute_values
 import pandas as pd
 from io import StringIO
+import json
 
 class PostgresIndexer(Indexer):
     def __init__(self, db_name="quackir", user="postgres"):
@@ -37,14 +39,17 @@ class PostgresIndexer(Indexer):
         self.conn.commit()
 
     def load_jsonl_table(self, table_name: str, file_path: str, index_type: IndexType, pretokenized=False):
-        df = pd.read_json(file_path, lines=True)
+        with open(file_path, 'r') as file:
+            data = [json.loads(line) for line in file]
+        # postgres does not allow null characters
+        rows = [(d["id"], d["contents"].replace("\x00", "\uFFFD") if "contents" in d else d["vector"]) for d in data]
         if index_type == IndexType.SPARSE and not pretokenized:
-            df["contents"] = df["contents"].apply(tokenize)
-        buffer = StringIO()
-        df.to_csv(buffer, index=False, header=False)
-        buffer.seek(0)
+            rows = [(d["id"], tokenize(d["contents"])) for d in data]
         cur = self.conn.cursor()
-        cur.copy_expert(f"COPY {table_name} FROM STDIN WITH CSV", buffer)
+        if index_type == IndexType.SPARSE:
+            execute_values(cur, f"INSERT INTO {table_name} (id, contents) VALUES %s", rows)
+        elif index_type == IndexType.DENSE:
+            execute_values(cur, f"INSERT INTO {table_name} (id, embedding) VALUES %s", rows)
         self.conn.commit()
 
     @staticmethod

@@ -27,6 +27,17 @@ class PostgresIndexer(Indexer):
     def __init__(self, db_name="quackir", user="postgres"):
         self.conn = psycopg2.connect(dbname=db_name, user=user)
 
+    def get_index_type(self, table_name: str) -> IndexType:
+        cur = self.conn.cursor()
+        cur.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = %s", (table_name,))
+        columns = [row[0] for row in cur.fetchall()]
+        if "contents" in columns:
+            return IndexType.SPARSE
+        elif "embedding" in columns:
+            return IndexType.DENSE
+        else:
+            raise ValueError(f"Unknown index type for table {table_name}. Ensure it has either an 'embedding' column or a 'contents' column.")
+
     def init_table(self, table_name: str, index_type: IndexType, embedding_dim=768):
         cur = self.conn.cursor()
         cur.execute(f"drop table if exists {table_name}")  

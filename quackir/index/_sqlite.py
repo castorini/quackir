@@ -24,6 +24,14 @@ class SQLiteIndexer(Indexer):
     def __init__(self, db_path="sqlite.db"):
         self.conn = sqlite3.connect(db_path)
 
+    def get_index_type(self, table_name: str) -> IndexType:
+        cur = self.conn.execute(f'select * from {table_name}')
+        names = list(map(lambda x: x[0], cur.description))
+        if "contents" in names:
+            return IndexType.SPARSE
+        else:
+            raise ValueError(f"Unknown index type for table {table_name}. Ensure it has a 'contents' column. SQLite only supports sparse indexes currently.")
+
     def init_table(self, table_name: str, index_type: IndexType, embedding_dim=768):
         if index_type != IndexType.SPARSE:
             raise ValueError(f"SQLite only supports FTS indexing, got {index_type}")

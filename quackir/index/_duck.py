@@ -24,6 +24,16 @@ class DuckDBIndexer(Indexer):
     def __init__(self, db_path="duck.db"):
         self.conn = duckdb.connect(db_path)
 
+    def get_index_type(self, table_name: str) -> IndexType:
+        table_description = self.conn.execute(f"DESCRIBE {table_name}").fetchall()
+        column_names = [row[0] for row in table_description]
+        if "contents" in column_names:
+            return IndexType.SPARSE
+        elif "embedding" in column_names:
+            return IndexType.DENSE
+        else:
+            raise ValueError(f"Unknown index type for table {table_name}. Ensure it has either an 'embedding' column or a 'contents' column.")
+
     def init_table(self, table_name: str, index_type: IndexType, embedding_dim=768):
         self.conn.execute(f"""DROP TABLE IF EXISTS {table_name}""")
         if index_type == IndexType.SPARSE:

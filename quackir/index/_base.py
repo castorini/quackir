@@ -19,12 +19,18 @@ from quackir._base import IndexType
 
 class Indexer(ABC):
     @abstractmethod
+    def get_index_type(self, table_name: str) -> IndexType:
+        pass
+
+    @abstractmethod
     def get_num_rows(self, table_name: str) -> int:
         """Get the number of rows in the specified table."""
         pass
 
-    def load_table(self, table_name: str, file_path: str, index_type: IndexType, pretokenized=False):
+    def load_table(self, table_name: str, file_path: str, index_type: IndexType = None, pretokenized=False):
         """Load data into the specified table."""
+        if index_type == None:
+            index_type = self.get_index_type(table_name)
         if file_path.endswith('.jsonl'):
             self.load_jsonl_table(table_name, file_path, index_type, pretokenized)
         elif file_path.endswith('.parquet'):
@@ -52,3 +58,6 @@ class Indexer(ABC):
     def fts_index(self, table_name: str = "corpus"):
         """Perform the indexing operation."""
         pass
+
+    def close(self):
+        self.conn.close()

@@ -61,9 +61,9 @@ class DuckDBSearcher(Searcher):
         """
         return self.conn.execute(query).fetchall()
 
-    def rrf_search(self, query_string, query_embedding, top_n=5, k=60, table_name=["sparse", "dense"]):
-        sparse_table = table_name[0] if self.get_search_type(table_name[0]) == SearchType.SPARSE else table_name[1]
-        dense_table = table_name[1] if self.get_search_type(table_name[1]) == SearchType.DENSE else table_name[0]
+    def rrf_search(self, query_string, query_embedding, top_n=5, k=60, table_names=["sparse", "dense"]):
+        sparse_table = table_names[0] if self.get_search_type(table_names[0]) == SearchType.SPARSE else table_names[1]
+        dense_table = table_names[1] if self.get_search_type(table_names[1]) == SearchType.DENSE else table_names[0]
         embd_size = len(query_embedding)
         query_embedding = str(query_embedding)
         query = f"""

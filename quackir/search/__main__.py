@@ -64,7 +64,7 @@ if __name__ == "__main__":
         elif len(args.index) == 2:
             searcher_type1 = searcher.get_search_type(table_name=args.index[0])
             searcher_type2 = searcher.get_search_type(table_name=args.index[1])
-            if searcher_type1 != searcher_type2 and (searcher_type1 == SearchType.SPARSE or searcher_type1 == SearchType.DENSE) and (searcher_type2 == SearchType.SPARSE or searcher_type2 == SearchType.DENSE):
+            if searcher_type1 != searcher_type2:
                 args.search_method = SearchType.HYBRID
             else:
                 raise ValueError("If two table names are provided, they must be of different types (sparse and dense) for hybrid search.")
@@ -96,7 +96,7 @@ if __name__ == "__main__":
             query_embedding=query.get("vector", None),
             top_n=args.hits,
             tokenize_query=not args.pretokenized,
-            table_name=args.index,
+            table_names=args.index,
             rrf_k=args.rrf_k
         )
         for rank, (doc_id, score) in enumerate(results, 1):

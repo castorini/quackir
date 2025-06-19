@@ -23,16 +23,16 @@ class Searcher(ABC):
     def filter_id(results, query_id):
         return [res for res in results if res[0] != query_id]
 
-    def search(self, method: SearchType, query_id: str, query_string: str = None, query_embedding: str = None, top_n=5, tokenize_query=True, table_name=["corpus"], rrf_k=60):
+    def search(self, method: SearchType, query_id: str = None, query_string: str = None, query_embedding: str = None, top_n=5, tokenize_query=True, table_names: list =["corpus"], rrf_k=60):
         results = []
         if method != SearchType.DENSE and tokenize_query:
             query_string = tokenize(query_string)
         if method == SearchType.SPARSE:
-            results = self.fts_search(query_string, top_n=top_n, table_name=table_name[0])
+            results = self.fts_search(query_string, top_n=top_n, table_name=table_names[0])
         elif method == SearchType.DENSE:
-            results = self.embedding_search(query_embedding, top_n=top_n, table_name=table_name[0])
+            results = self.embedding_search(query_embedding, top_n=top_n, table_name=table_names[0])
         elif method == SearchType.HYBRID:
-            results = self.rrf_search(query_string, query_embedding, top_n=top_n, k=rrf_k, table_name=table_name)
+            results = self.rrf_search(query_string, query_embedding, top_n=top_n, k=rrf_k, table_name=table_names)
         else:
             raise ValueError(f"Unknown search method: {method}")
         
@@ -40,10 +40,6 @@ class Searcher(ABC):
     
     @abstractmethod
     def get_search_type(self, table_name: str) -> SearchType:
-        """
-        Returns the type of search this class implements.
-        Should return an instance of SearchType.
-        """
         pass
     
     @abstractmethod
@@ -55,5 +51,8 @@ class Searcher(ABC):
         pass
 
     @abstractmethod
-    def rrf_search(self, query_string: str, query_embedding: str, top_n=5, k=60, table_name=["sparse", "dense"]):
+    def rrf_search(self, query_string: str, query_embedding: str, top_n=5, k=60, table_names=["sparse", "dense"]):
         pass
+
+    def close(self):
+        self.conn.close()

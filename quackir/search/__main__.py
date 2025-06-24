@@ -21,6 +21,7 @@ import json
 import sys
 import gzip
 from tqdm import tqdm
+import time
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Search for queries in a database.")
@@ -87,8 +88,10 @@ if __name__ == "__main__":
     print(f"Loaded {len(queries)} queries from {args.topics}")
 
     all_results = []
+    all_times = []
     for query in tqdm(queries, desc=f"Processing {args.run_tag}", unit="query", total=len(queries)):
         query_id = query.get("id", query.get("qid", None))
+        start_time = time.time()
         results = searcher.search(
             method=args.search_method,
             query_id=query_id,
@@ -99,9 +102,12 @@ if __name__ == "__main__":
             table_names=args.index,
             rrf_k=args.rrf_k
         )
+        end_time = time.time()
+        all_times.append(end_time - start_time)
         for rank, (doc_id, score) in enumerate(results, 1):
             all_results.append((query_id, doc_id, score, rank))
 
+    print(f"Processed at {len(queries) / sum(all_times)} queries per second.")
     all_results.sort(key=_custom_sort_key) 
 
     with open(args.output, "w") as f:

@@ -32,7 +32,7 @@ class Searcher(ABC):
         elif method == SearchType.DENSE:
             results = self.embedding_search(query_embedding, top_n=top_n, table_name=table_names[0])
         elif method == SearchType.HYBRID:
-            results = self.rrf_search(query_string, query_embedding, top_n=top_n, k=rrf_k, table_name=table_names)
+            results = self.rrf_search(query_string, query_embedding, top_n=top_n, k=rrf_k, table_names=table_names)
         else:
             raise ValueError(f"Unknown search method: {method}")
         

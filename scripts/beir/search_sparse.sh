@@ -8,7 +8,7 @@ do
     # Retrieval with DuckDB
     python -m quackir.search \
     --topics ./collections/beir-v1.0.0/corpus/$c/parsed_queries.jsonl \
-    --index $c \
+    --index "$c"_sparse \
     --pretokenized \
     --output runs/duckdb-beir-$c-sparse.txt \
     --db-type duckdb \
@@ -17,7 +17,7 @@ do
     # Retrieval with SQLite
     python -m quackir.search \
     --topics ./collections/beir-v1.0.0/corpus/$c/parsed_queries.jsonl \
-    --index $c \
+    --index "$c"_sparse \
     --pretokenized \
     --output runs/sqlite-beir-$c-sparse.txt \
     --db-type sqlite \
@@ -30,8 +30,9 @@ do
     # Retrieval with PostgreSQL
     python -m quackir.search \
     --topics ./collections/beir-v1.0.0/corpus/$c/parsed_queries.jsonl \
-    --index $c \
+    --index "$c"_sparse \
     --pretokenized \
     --output runs/postgres-beir-$c-sparse.txt \
     --db-type postgres 
 done
+echo "done"

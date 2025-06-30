@@ -1,6 +1,7 @@
 #!/bin/bash
-CORPORA=(trec-covid webis-touche2020 quora robust04 trec-news); 
+# CORPORA=(trec-covid webis-touche2020 quora robust04 trec-news); 
 # CORPORA=(nfcorpus scifact arguana cqadupstack-mathematica cqadupstack-webmasters cqadupstack-android scidocs cqadupstack-programmers cqadupstack-gis cqadupstack-physics cqadupstack-english cqadupstack-stats cqadupstack-gaming cqadupstack-unix cqadupstack-wordpress fiqa cqadupstack-tex);
+CORPORA=(nfcorpus scifact arguana cqadupstack-mathematica cqadupstack-webmasters cqadupstack-android scidocs cqadupstack-programmers cqadupstack-gis cqadupstack-physics cqadupstack-english cqadupstack-stats cqadupstack-gaming cqadupstack-unix cqadupstack-wordpress fiqa cqadupstack-tex trec-covid webis-touche2020 quora robust04 trec-news);
 for c in "${CORPORA[@]}"
 do
     echo $c

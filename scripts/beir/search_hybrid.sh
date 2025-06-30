@@ -7,7 +7,7 @@ do
     # Retrieval with DuckDB
     python -m quackir.search \
     --topics ./collections/beir-v1.0.0/combined_queries/$c/queries.jsonl \
-    --index $c "$c"_sparse \
+    --index "$c"_dense "$c"_sparse \
     --output runs/duckdb-beir-$c-hybrid.txt \
     --pretokenized \
     --db-type duckdb \
@@ -16,7 +16,7 @@ do
     # Retrieval with PostgreSQL
     python -m quackir.search \
     --topics ./collections/beir-v1.0.0/combined_queries/$c/queries.jsonl \
-    --index $c "$c"_sparse \
+    --index "$c"_dense "$c"_sparse \
     --output runs/postgres-beir-$c-hybrid.txt \
     --pretokenized \
     --db-type postgres 

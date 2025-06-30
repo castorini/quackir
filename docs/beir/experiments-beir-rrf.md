@@ -40,7 +40,7 @@ do
 
     # Tokenize and munge the corpus
     python -m quackir.analysis \
-    --input ./collections/beir-v1.0.0/corpus/$c/ \
+    --input ./collections/beir-v1.0.0/corpus/$c/corpus.jsonl \
     --output ./collections/beir-v1.0.0/corpus/$c/parsed_corpus.jsonl
 
     # Tokenize and munge the queries

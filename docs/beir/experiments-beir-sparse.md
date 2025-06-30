@@ -19,15 +19,6 @@ tar xvf collections/beir-v1.0.0-corpus.tar -C collections/
 
 The tarball is 14 GB and has MD5 checksum `faefd5281b662c72ce03d22021e4ff6b`.
 
-All the BEIR corpora, encoded by the BGE-base-en-v1.5 model and stored in Parquet format, are available for download:
-
-```bash
-wget https://rgw.cs.uwaterloo.ca/pyserini/data/beir-v1.0.0-bge-base-en-v1.5.parquet.tar -P collections/
-tar xvf collections/beir-v1.0.0-bge-base-en-v1.5.parquet.tar -C collections/
-```
-
-The tarball is 127 GB and has MD5 checksum `5f8dce18660cc8ac0318500bea5993ac`.
-
 ## Data Prep
 
 To munge and tokenize the corpus and queries for sparse retrieval:
@@ -40,7 +31,7 @@ do
 
     # Tokenize and munge the corpus
     python -m quackir.analysis \
-    --input ./collections/beir-v1.0.0/corpus/$c/ \
+    --input ./collections/beir-v1.0.0/corpus/$c/corpus.jsonl \
     --output ./collections/beir-v1.0.0/corpus/$c/parsed_corpus.jsonl
 
     # Tokenize and munge the queries
@@ -72,6 +63,14 @@ do
     --pretokenized \
     --db-type duckdb \
     --db-path duck.db
+
+    python -m quackir.index \
+    --input ./collections/beir-v1.0.0/corpus/$c/parsed_corpus.jsonl \
+    --index-type sparse \
+    --index $c \
+    --pretokenized \
+    --db-type sqlite \
+    --db-path sqlite.db
 
     # Skip certain corpora that take too long
     if [[ "$c" == "trec-covid" || "$c" == "webis-touche2020" || "$c" == "quora" || "$c" == "robust04" || "$c" == "trec-news" || "$c" == "nq" || "$c" == "signal1m" || "$c" == "dbpedia-entity" || "$c" == "hotpotqa" || "$c" == "fever" || "$c" == "climate-fever" || "$c" == "bioasq" ]]; then

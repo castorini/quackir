@@ -1,3 +1,19 @@
+#
+# QuackIR: Reproducible IR research in RDBMS
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 import duckdb
 from ._base import Searcher
 from quackir._base import SearchType
@@ -9,10 +25,10 @@ class DuckDBSearcher(Searcher):
     def get_search_type(self, table_name: str) -> SearchType:
         table_description = self.conn.execute(f"DESCRIBE {table_name}").fetchall()
         column_names = [row[0] for row in table_description]
-        if "embedding" in column_names:
-            return SearchType.DENSE
-        elif "contents" in column_names:
+        if "contents" in column_names:
             return SearchType.SPARSE
+        elif "embedding" in column_names:
+            return SearchType.DENSE
         else:
             raise ValueError(f"Unknown search type for table {table_name}. Ensure it has either an 'embedding' column or a 'contents' column.")
 
@@ -45,9 +61,9 @@ class DuckDBSearcher(Searcher):
         """
         return self.conn.execute(query).fetchall()
 
-    def rrf_search(self, query_string, query_embedding, top_n=5, k=60, table_name=["sparse", "dense"]):
-        sparse_table = table_name[0] if self.get_search_type(table_name[0]) == SearchType.SPARSE else table_name[1]
-        dense_table = table_name[1] if self.get_search_type(table_name[1]) == SearchType.DENSE else table_name[0]
+    def rrf_search(self, query_string, query_embedding, top_n=5, k=60, table_names=["sparse", "dense"]):
+        sparse_table = table_names[0] if self.get_search_type(table_names[0]) == SearchType.SPARSE else table_names[1]
+        dense_table = table_names[1] if self.get_search_type(table_names[1]) == SearchType.DENSE else table_names[0]
         embd_size = len(query_embedding)
         query_embedding = str(query_embedding)
         query = f"""

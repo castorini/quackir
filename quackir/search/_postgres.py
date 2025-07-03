@@ -1,3 +1,19 @@
+#
+# QuackIR: Reproducible IR research in RDBMS
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 import psycopg2
 import re
 from ._base import Searcher
@@ -18,10 +34,10 @@ class PostgresSearcher(Searcher):
         cur = self.conn.cursor()
         cur.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = %s", (table_name,))
         columns = [row[0] for row in cur.fetchall()]
-        if "embedding" in columns:
-            return SearchType.DENSE
-        elif "contents" in columns:
+        if "contents" in columns:
             return SearchType.SPARSE
+        elif "embedding" in columns:
+            return SearchType.DENSE
         else:
             raise ValueError(f"Unknown search type for table {table_name}. Ensure it has either an 'embedding' column or a 'contents' column.")
     
@@ -49,9 +65,9 @@ class PostgresSearcher(Searcher):
         cur.execute(query, (query_embedding, top_n))
         return cur.fetchall()
     
-    def rrf_search(self, query_string: str, query_embedding: str, top_n=5, k=60, table_name=["sparse", "dense"]):
-        sparse_table = table_name[0] if self.get_search_type(table_name[0]) == SearchType.SPARSE else table_name[1]
-        dense_table = table_name[1] if self.get_search_type(table_name[1]) == SearchType.DENSE else table_name[0]
+    def rrf_search(self, query_string: str, query_embedding: str, top_n=5, k=60, table_names=["sparse", "dense"]):
+        sparse_table = table_names[0] if self.get_search_type(table_names[0]) == SearchType.SPARSE else table_names[1]
+        dense_table = table_names[1] if self.get_search_type(table_names[1]) == SearchType.DENSE else table_names[0]
         ts_query = self.clean_tsquery(query_string)
         cur = self.conn.cursor()
         sql = f"""

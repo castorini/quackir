@@ -1,3 +1,7 @@
 duckdb==1.1.1
 tqdm==4.66.5
-pyserini==0.37.0
+pyserini==1.0.0
+psycopg2==2.9.10
+dotenv
+pyarrow
+fastparquet

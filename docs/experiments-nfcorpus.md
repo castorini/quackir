@@ -17,7 +17,7 @@ Rather than adding a separate search system (like Lucene) or vector database for
 This minimizes complexity in their software stack.
 
 QuackIR demonstrates that relational database management systems (RDBMSes) like DuckDB can perform retrieval with effectiveness comparable to established IR toolkits.
-Coming back to the bi-encoder framework, the document and query encoders produce sparse bag-of-words representations, and retrieval is performed using BM25 scoring.
+In our examples of the bi-encoder framework for sparse retrieval, the document and query encoders generate sparse lexical representations, and retrieval is performed via BM25 scoring.
 In Pyserini, this is handled by Lucene. Here, we'll use DuckDB's full-text search (FTS) capabilities instead.
 Both approaches implement the same conceptual framework. They just use different underlying technologies.
 
@@ -158,7 +158,6 @@ searcher.close()
 
 Here, QuackIR uses DuckDB's FTS capabilities for BM25 scoring.
 Under the hood, QuackIR translates your Python calls into SQL queries that DuckDB executes, but you don't need to write any SQL yourself.
-This abstraction layer makes QuackIR easy to use while leveraging the power of a relational database for retrieval.
 
 The above retrieval command takes only a few minutes on a modern laptop since the corpus is small.
 For larger corpora, you would see increased latency, which is one consideration when using RDBMSes for retrieval at scale.
@@ -205,19 +204,7 @@ The results should be as follows:
 10 MED-1512 4.278235
 ```
 
-Notice how similar this interface is to Pyserini's:
-
-```python
-from pyserini.search.lucene import LuceneSearcher
-
-searcher = LuceneSearcher('indexes/lucene.nfcorpus')
-hits = searcher.search('How to Help Prevent Abdominal Aortic Aneurysms')
-
-for i in range(0, 10):
-    print(f'{i+1:2} {hits[i].docid:7} {hits[i].score:.4f}')
-```
-
-You'll see that the ranked list is the same as the batch run you performed above:
+We can verify these results against the batch run you performed above:
 
 ```bash
 $ grep PLAIN-3074 runs/run.quackir.duckdb.sparse.nfcorpus.txt | head -10
@@ -235,6 +222,20 @@ PLAIN-3074 Q0 MED-1512 10 4.278235 QuackIR
 
 Perfect!
 The single-query results match the batch results exactly.
+
+Additionally, notice how similar this QuackIR interface is to Pyserini's:
+
+```python
+from pyserini.search.lucene import LuceneSearcher
+
+searcher = LuceneSearcher('indexes/lucene.nfcorpus')
+hits = searcher.search('How to Help Prevent Abdominal Aortic Aneurysms')
+
+for i in range(0, 10):
+    print(f'{i+1:2} {hits[i].docid:7} {hits[i].score:.4f}')
+```
+
+Both provide a clean, Pythonic API for retrieval, even though they use different backends (DuckDB vs. Lucene).
 
 ## Evaluation
 

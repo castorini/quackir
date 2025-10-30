@@ -21,6 +21,7 @@ git clone https://github.com/castorini/quackir.git --recurse-submodules
 conda create -n quackir python=3.10
 conda activate quackir
 conda install -c conda-forge postgresql pgvector openjdk=21 maven -y
+cd quackir
 pip install -r requirements.txt
 ```
 
@@ -46,6 +47,7 @@ from quackir import IndexType
 
 table_name = "corpus"
 index_type = IndexType.SPARSE
+corpus_file = YOUR_CORPUS_FILE_PATH
 
 indexer = DuckDBIndexer()
 indexer.init_table(table_name, index_type)

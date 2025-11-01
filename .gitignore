@@ -2,8 +2,10 @@ collections
 indexes
 runs
 logs
+mydb/
 duck.db
 sqlite.db
 evals
 __pycache__/
- *.pyc
+*.pyc
+logfile

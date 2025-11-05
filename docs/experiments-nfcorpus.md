@@ -89,7 +89,8 @@ This command-line invocation does the trick:
 tail -n +2 collections/nfcorpus/qrels/test.tsv | sed 's/\t/\tQ0\t/' > collections/nfcorpus/qrels/test.qrels
 ```
 
-The data are ready for now. Later, for dense retrieval, you’ll need to encode the documents and queries with the BGE-base-en-v1.5 model using Pyserini.
+The data is ready for now.
+Later, for dense retrieval, you’ll need to encode the documents and queries with the BGE-base-en-v1.5 model using Pyserini.
 
 ## Sparse Retrieval with BM25
 
@@ -310,7 +311,10 @@ python -m pyserini.encode \
                     --batch 32
 ```
 
-Then convert the Pyserini-generated JSONL to a Parquet file containing only `id` and `vector`. This is the format QuackIR’s DuckDB indexer expects (it doesn’t use `contents`).
+Then convert the Pyserini-generated JSONL file into a Parquet file containing only the `id` and `vector` fields.
+QuackIR’s DuckDB indexer expects exactly these two fields (it does not use `contents`).
+Alternatively, you can keep the data in JSONL format instead of converting it to Parquet, as long as you include only the two required fields.
+The example here simply demonstrates that the system can read a Parquet file. You can learn more about the advantages of the Parquet format if you're interested.
 
 ```python
 import json

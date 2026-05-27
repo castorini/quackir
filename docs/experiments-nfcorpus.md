@@ -443,3 +443,4 @@ Okay, that's it for this lesson. Before you move on, however, add an entry in th
 ## Reproduction Log[*](https://github.com/castorini/pyserini/blob/master/docs/reproducibility.md)
 
 + Results reproduced by [@brandonzhou2002](https://github.com/brandonzhou2002) on 2025-10-30 (commit [`c9a80ed`](https://github.com/castorini/quackir/commit/c9a80edf993c3e7f17b34117d6f6b6e1e82051a6))
++ Results reproduced by [@david23131](https://github.com/david23131) on 2026-05-27 (commit [`afab96e`](https://github.com/owner/repo/commit/afab96e157d01109ed24dfb3ded420d812e2d2fc))

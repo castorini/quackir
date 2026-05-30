@@ -1,6 +1,6 @@
 # QuackIR: Database Options for Indexing and Search
 
-QuackIR currently supports DuckDB, SQLite, and PostgreSQL. 
+QuackIR currently supports DuckDB, SQLite, PostgreSQL, and RagDB.
 
 For more information on how to set up the databases, see [these guides](./db_guides/).
 
@@ -8,7 +8,7 @@ For `quackir.index` and `quackir.search`, one of the three above database types 
 
 + `--db-type` [Required]:
 Type of database to use.
-Available options: `duckdb`, `sqlite`, `postgres`.
+Available options: `duckdb`, `sqlite`, `postgres`, `ragdb`.
 Dotenv key: `DB_TYPE`
 
 + `--db-path`: 

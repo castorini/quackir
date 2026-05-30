@@ -17,3 +17,4 @@
 from ._duck import DuckDBIndexer
 from ._postgres import PostgresIndexer
 from ._sqlite import SQLiteIndexer
+from ._ragdb import RagDBIndexer

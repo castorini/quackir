@@ -27,7 +27,7 @@ class Indexer(ABC):
         """Get the number of rows in the specified table."""
         pass
 
-    def load_table(self, table_name: str, file_path: str, index_type: IndexType = None, pretokenized=False):
+    def load_table(self, table_name: str, file_path: str, index_type: IndexType | None = None, pretokenized=False):
         """Load data into the specified table."""
         if index_type == None:
             index_type = self.get_index_type(table_name)

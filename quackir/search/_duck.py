@@ -17,10 +17,12 @@
 import duckdb
 from ._base import Searcher
 from quackir._base import SearchType
+from quackir.flock import FlockManager
 
 class DuckDBSearcher(Searcher):
-    def __init__(self, db_path="duck.db"):
+    def __init__(self, db_path="duck.db", flock_manager: FlockManager | None = None):
         self.conn = duckdb.connect(db_path)
+        self.flock_manager = flock_manager
 
     def get_search_type(self, table_name: str) -> SearchType:
         table_description = self.conn.execute(f"DESCRIBE {table_name}").fetchall()
@@ -45,8 +47,25 @@ class DuckDBSearcher(Searcher):
         LIMIT {top_n};
         """
         return self.conn.execute(query, [query_string]).fetchall()
-    
-    def embedding_search(self, query_embedding: str, top_n=5, table_name="corpus"):
+
+    def embedding_search(self, query_embedding: str, top_n=5, table_name="corpus", with_flock=False, **flock_kwargs):
+        """
+        Perform dense retrieval.
+
+        If with_flock=True, the query embedding is computed via the Flock extension before searching.
+
+        Extra keyword arguments are forwarded to search_embedding, e.g.:
+            embedding_dim=768
+        """
+        if with_flock:
+            if self.flock_manager is None:
+                raise ValueError("flock_manager must be provided when with_flock=True.")
+            return self.flock_manager.search_embedding(
+                query_text=query_embedding,
+                top_n=top_n,
+                table_name=table_name,
+                **flock_kwargs,
+            )
         embd_size = len(query_embedding)
         query_embedding = str(query_embedding)
         query = f"""

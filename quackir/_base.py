@@ -33,6 +33,11 @@ class SearchDB(Enum):
     SQLITE = 'sqlite'
     POSTGRES = 'postgres'
 
+class SecretProvider(Enum):
+    OLLAMA = 'OLLAMA'
+    OPENAI = 'OPENAI'
+    AZURE = 'AZURE_LLM'
+
 def count_lines(filename, open_cmd):
     with open_cmd(filename, 'r') as file:
         return sum(1 for _ in file)

@@ -17,12 +17,14 @@
 from ._base import Indexer
 from quackir._base import IndexType
 from quackir.analysis import tokenize
+from quackir.flock import FlockManager
 import duckdb
 import json
 
 class DuckDBIndexer(Indexer):
-    def __init__(self, db_path="duck.db"):
+    def __init__(self, db_path="duck.db", flock_manager: FlockManager | None = None):
         self.conn = duckdb.connect(db_path)
+        self.flock_manager = flock_manager
 
     def get_index_type(self, table_name: str) -> IndexType:
         table_description = self.conn.execute(f"DESCRIBE {table_name}").fetchall()
@@ -33,6 +35,33 @@ class DuckDBIndexer(Indexer):
             return IndexType.DENSE
         else:
             raise ValueError(f"Unknown index type for table {table_name}. Ensure it has either an 'embedding' column or a 'contents' column.")
+
+    def load_table(
+        self,
+        table_name: str,
+        file_path: str,
+        index_type: IndexType | None = None,
+        pretokenized=False,
+        with_flock=False,
+        **flock_kwargs,
+    ):
+        """
+        Load a file into a table.
+
+        If with_flock=True, build a dense embedding table directly from the source file
+        using the Flock extension instead of loading raw contents.
+
+        Extra keyword arguments are forwarded to create_embedding, e.g.:
+            id_column="id", contents_column="contents", embedding_dim=768
+        """
+        if with_flock:
+            if self.flock_manager is None:
+                raise ValueError("flock_manager must be provided when with_flock=True.")
+            self.flock_manager.create_embedding(
+                dest_table=table_name, file_path=file_path, **flock_kwargs
+            )
+        else:
+            super().load_table(table_name, file_path, index_type, pretokenized)
 
     def init_table(self, table_name: str, index_type: IndexType, embedding_dim=768):
         self.conn.execute(f"""DROP TABLE IF EXISTS {table_name}""")

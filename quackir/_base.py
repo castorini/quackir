@@ -52,12 +52,18 @@ def _add_db_parser_arguments(parser: argparse.ArgumentParser):
     parser.add_argument("--db-name", type=str, default="quackir", help="Name of the database for Postgres. Ignored for DuckDB and SQLite.")
     parser.add_argument("--db-user", type=str, default="postgres", help="Username for Postgres. Ignored for DuckDB and SQLite.")
 
-def _load_env(args):
+def load_env(args=None):
     """
     Load environment variables from a .env file if it exists.
     This is useful for setting up database connection parameters.
     """
     dotenv.load_dotenv()
+
+    os.environ["_ENV_LOADED"] = "1"
+
+    if args is None:
+        return
+
     args.db_type = os.getenv('DB_TYPE', args.db_type)
     args.db_path = os.getenv('DB_PATH', args.db_path)
     args.db_name = os.getenv('DB_NAME', args.db_name)

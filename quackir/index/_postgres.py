@@ -14,9 +14,12 @@
 # limitations under the License.
 #
 
+import os
+import config
 from ._base import Indexer
 from quackir._base import IndexType
 from quackir.analysis import tokenize
+from quackir.utils.constants import BM25_INDEX_TEMPLATE, EMBEDDING_INDEX_TEMPLATE
 import psycopg2
 from psycopg2.extras import execute_values
 import pandas as pd
@@ -24,8 +27,17 @@ from io import StringIO
 import json
 
 class PostgresIndexer(Indexer):
-    def __init__(self, db_name="quackir", user="postgres"):
-        self.conn = psycopg2.connect(dbname=db_name, user=user)
+    def __init__(
+        self, db_name="quackir", user="postgres", use_pg_textsearch: bool = False
+    ):
+        self.use_pg_textsearch = use_pg_textsearch
+        if self.use_pg_textsearch:
+            self.conn = psycopg2.connect(dsn=os.environ["TIMESCALE_SERVICE_URL"])
+            cur = self.conn.cursor()
+            cur.execute("CREATE EXTENSION IF NOT EXISTS pg_textsearch;")
+            cur.execute("CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;")
+        else:
+            self.conn = psycopg2.connect(dbname=db_name, user=user)
 
     def get_index_type(self, table_name: str) -> IndexType:
         cur = self.conn.cursor()
@@ -83,6 +95,47 @@ class PostgresIndexer(Indexer):
         result = cur.fetchone()
         return result[0] if result else 0
 
-    def fts_index(self, table_name: str = "corpus"):
+    def fts_index(
+        self,
+        table_name: str = "corpus",
+        text_config: str = "english",
+        k1: float = 0.9,
+        b: float = 0.4,
+    ):
         cur = self.conn.cursor()
-        cur.execute(f'''CREATE INDEX "corpus_contents_gin" ON "{table_name}" USING gin(to_tsvector('simple', contents));''')
+        if self.use_pg_textsearch:
+            idx_name = BM25_INDEX_TEMPLATE.format(table_name=table_name)
+            cur.execute(f'DROP INDEX IF EXISTS "{idx_name}";')
+            cur.execute(
+                f"""
+                CREATE INDEX "{idx_name}" ON "{table_name}"
+                USING bm25(contents) WITH (text_config='{text_config}', k1={k1}, b={b});
+                """
+            )
+        else:
+            cur.execute(
+                f"""
+                CREATE INDEX "corpus_contents_gin" ON "{table_name}"
+                USING gin(to_tsvector('simple', contents));
+                """
+            )
+        self.conn.commit()
+
+    def embedding_index(
+        self,
+        table_name: str,
+        using: str = "hnsw",
+        opclass: str = "vector_cosine_ops",
+        column: str = "embedding",
+    ) -> str:
+        idx_name = EMBEDDING_INDEX_TEMPLATE.format(table_name=table_name)
+        cur = self.conn.cursor()
+        cur.execute(f'DROP INDEX IF EXISTS "{idx_name}";')
+        cur.execute(
+            f"""
+            CREATE INDEX "{idx_name}" ON "{table_name}"
+            USING {using} ({column} {opclass});
+            """
+        )
+        self.conn.commit()
+        return idx_name
